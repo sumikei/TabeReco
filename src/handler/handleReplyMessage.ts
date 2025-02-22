@@ -18,12 +18,20 @@ const replyMessageRequest: ReplyMessageRequest = {
 }
 
 const handleReplyMessage = async (event: WebhookEvent) => {
+  console.log("handleReplyMessage -- Start");
   if (event.type !== "message" || event.message.type !== "text") {
     return Promise.resolve(null);
   }
+  console.log("🔍 Received event:", JSON.stringify(event, null, 2));
+
+  if (!event.replyToken) {
+    console.error("❌ Error: Missing replyToken in event");
+    return null;
+  }
+  console.log("🟢 Valid replyToken:", event.replyToken);
 
   // const replyText = `あなたのメッセージ: ${event.message.text}`;
-  return client.replyMessage(replyMessageRequest);
+  return await client.replyMessage(replyMessageRequest);
 }
 
 
