@@ -11,4 +11,13 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  relationMode = "prisma"
+}
+
+model MealRecord {
+  id        Int      @id @default(autoincrement())
+  food_name String   @unique
+  meal_date DateTime
+  createdAt DateTime @default(now())
 }
