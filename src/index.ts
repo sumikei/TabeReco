@@ -17,9 +17,6 @@ app.get("/", (req, res) => {
   res.send("Hello, Express with TypeScript!");
 });
 
-console.log("🔍 LINE_CHANNEL_SECRET:", process.env.LINE_CHANNEL_SECRET ? "✔ 設定済み" : "❌ 未設定");
-console.log("🔍 LINE_ACCESS_TOKEN:", process.env.LINE_ACCESS_TOKEN ? "✔ 設定済み" : "❌ 未設定");
-
 // Webhookエンドポイント
 app.post("/webhook", middleware(config), async (req: Request, res: Response) => {
   try {
