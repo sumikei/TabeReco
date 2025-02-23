@@ -31,10 +31,15 @@ app.post("/webhook", middleware(config), async (req: Request, res: Response) => 
 
       // 食べたいものリクエストがあった場合のみ応答する
       const userMessage: string = event.message.text;
-      if (regex.test(userMessage)) {
+      if (userMessage == "食事を記録する") {
         messages.push({
           type: "text",
-          text: "リクエストを受け付けました",
+          text: "食事記録を保存しました",
+        })
+      } else if (userMessage == "履歴検索する") {
+        messages.push({
+          type: "text",
+          text: "履歴検索の要求を受け付けました",
         })
       }
 
