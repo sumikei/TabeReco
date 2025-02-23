@@ -4,7 +4,9 @@ import dotenvExpand from "dotenv-expand";
 import { middleware } from "@line/bot-sdk";
 import config from "./config";
 import { sendReplyApi } from "./handler/apiHandler";
-import { createMealRecord } from "./controllers/mealController";
+import { createMealRecord, getDaysSinceLastMeal } from "./controllers/mealController";
+import { setUserMode, getUserMode } from "./controllers/userStateController"
+import { RECORD_MODE, SEARCH_MODE } from "./const/model";
 
 
 const app = express();
@@ -28,30 +30,51 @@ app.post("/webhook", middleware(config), async (req: Request, res: Response) => 
 
     // ユーザーがボットにメッセージを送った場合
     if (event.type === "message") {
+      const userId = event.source.userId;
 
       const userMessage: string = event.message.text;
       if (userMessage == "食事を記録する") {
+        await setUserMode(userId, RECORD_MODE);
         messages.push({
           type: "text",
           text: "何を食べましたか？",
         })
       } else if (userMessage == "履歴検索する") {
-        // TODO: DBからデータ取得して結果を返却する
+        await setUserMode(userId, SEARCH_MODE);
+
         messages.push({
           type: "text",
-          text: "履歴検索の要求を受け付けました",
+          text: "履歴検索したい食べ物の名前を入力してください",
         })
       } else {
         // 食事記録フローの2回目入力を想定。テキスト入力での送信は考慮外
 
-        const now = new Date()
-        createMealRecord(userMessage, now)
+        const mode = await getUserMode(userId);
+        if (mode === RECORD_MODE) {
+          const now = new Date();
+          await createMealRecord(userMessage, now, userId);
 
-        messages.push({
-          type: "text",
-          text: "食事記録を保存しました",
-        })
-        console.log("🔍 Message Pushed -- " + userMessage);
+          messages.push({
+            type: "text",
+            text: "食事記録を保存しました",
+          })
+          console.log("🔍 食事の記録が完了しました");
+        } else if (mode === SEARCH_MODE) {
+          console.log(`🔍 userid: ${userId}`);
+
+          // 何日前かを計算して応答
+          const day = await getDaysSinceLastMeal(userMessage, userId);
+          const replyMessage = day == null ? `${userMessage}は登録されていません` :`あなたが${userMessage}を食べたのは${day}日前です`;
+
+          messages.push({
+            type: "text",
+            text: replyMessage,
+          })
+          console.log("🔍 食事の履歴検索が完了しました");
+        } else {
+          console.log("🔍 意味のないテキストが入力されました");
+          res.sendStatus(200);
+        }
       }
 
       // 応答メッセージを送信
@@ -60,7 +83,7 @@ app.post("/webhook", middleware(config), async (req: Request, res: Response) => 
           messages
       });
 
-      res.sendStatus(200)
+      res.sendStatus(200);
     }
 
   } catch (error) {
@@ -68,29 +91,6 @@ app.post("/webhook", middleware(config), async (req: Request, res: Response) => 
     res.sendStatus(500);
   }
 });
-
-// const createMealHandler: RequestHandler =  async (req: Request, res: Response): Promise<void> => {
-//   console.log("🔥 /create-meal にリクエストが届いた！");
-//   console.log("📥 受信データ:", req.body); // ← ここで curl のデータを取得
-
-//   try {
-//     const { food_name, meal_date } = req.body;
-
-//     if (!food_name || !meal_date) {
-//       console.log("❌ food_name または meal_date が空です");
-//       res.status(400).json({ error: "food_name と meal_date は必須です。" });
-//       return
-//     }
-
-//     await createMealRecord(food_name, new Date(meal_date));
-//     res.status(200).json({ message: "✅ MealRecord が追加されました" });
-//   } catch (error) {
-//     console.error("❌ API でエラー発生:", error);
-//     res.status(500).json({ error: "内部サーバーエラー" });
-//   }
-// };
-
-// app.post("/create-meal", createMealHandler);
 
 
 export default app;
