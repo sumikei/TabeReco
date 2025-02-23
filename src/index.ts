@@ -4,6 +4,7 @@ import dotenvExpand from "dotenv-expand";
 import { middleware } from "@line/bot-sdk";
 import config from "./config";
 import { sendReplyApi } from "./handler/apiHandler";
+import { createMealRecord } from "./controllers/mealController";
 
 
 const app = express();
@@ -28,24 +29,30 @@ app.post("/webhook", middleware(config), async (req: Request, res: Response) => 
     // ユーザーがボットにメッセージを送った場合
     if (event.type === "message") {
 
-      // 食べたいものリクエストがあった場合のみ応答する
       const userMessage: string = event.message.text;
       if (userMessage == "食事を記録する") {
         messages.push({
           type: "text",
-          text: "食事記録を保存しました",
+          text: "何を食べましたか？",
         })
       } else if (userMessage == "履歴検索する") {
+        // TODO: DBからデータ取得して結果を返却する
         messages.push({
           type: "text",
           text: "履歴検索の要求を受け付けました",
         })
-      }
+      } else {
+        // 食事記録フローの2回目入力を想定。テキスト入力での送信は考慮外
 
-      messages.push({
-        type: "text",
-        text: "これはテスト応答です",
-      })
+        const now = new Date()
+        createMealRecord(userMessage, now)
+
+        messages.push({
+          type: "text",
+          text: "食事記録を保存しました",
+        })
+        console.log("🔍 Message Pushed -- " + userMessage);
+      }
 
       // 応答メッセージを送信
       await sendReplyApi({
