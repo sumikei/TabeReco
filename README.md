@@ -10,6 +10,4 @@
   - Vercel
 
 ## システム構成
-![tabereq_システム構成 drawio](https://github.com/user-attachments/assets/b7d5029f-b121-4bf3-bce5-a234296f97b6)
-
-※招待しなくても基本的には友達追加でOK
+![TabeReco_システム構成 drawio](https://github.com/user-attachments/assets/4c0d9687-53e4-4d83-92ae-ffe59c58639d)
