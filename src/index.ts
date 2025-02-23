@@ -38,7 +38,7 @@ app.post("/webhook", middleware(config), async (req: Request, res: Response) => 
         messages.push(
         {
           type: "textV2",
-          text: "何を食べましたか？",
+          text: "何を食べましたか？\n 複数ある場合は1つずつ入力してください。",
         },
         {
           type: "sticker",
@@ -51,7 +51,7 @@ app.post("/webhook", middleware(config), async (req: Request, res: Response) => 
 
         messages.push({
           type: "textV2",
-          text: "食べ物の名前を入力してください{chicken}{pizza}{ramen}",
+          text: "食べ物の名前は何ですか？{chicken}{pizza}{ramen}\n 複数ある場合は1つずつ入力してください。",
           substitution: {
             "chicken": {
               type: "emoji",
@@ -71,8 +71,7 @@ app.post("/webhook", middleware(config), async (req: Request, res: Response) => 
           }
         })
       } else {
-        // 食事記録フローの2回目入力を想定。テキスト入力での送信は考慮外
-
+        // 食事記録および履歴検索処理
         const mode = await getUserMode(userId);
         if (mode === RECORD_MODE) {
           const now = new Date();
@@ -102,7 +101,9 @@ app.post("/webhook", middleware(config), async (req: Request, res: Response) => 
 
           // 何日前かを計算して応答
           const day = await getDaysSinceLastMeal(userMessage, userId);
-          const replyMessage = day == null ? `${userMessage}は登録されていません💦` :`あなたが${userMessage}を食べたのは${day}日前です💡`;
+          const replyMessage = day === null
+            ? `${userMessage}は登録されていません💦`
+            : `あなたが${userMessage}を食べたのは${day === 0 ? "今日" : `${day}日前`}です💡`
 
           messages.push({
             type: "text",
