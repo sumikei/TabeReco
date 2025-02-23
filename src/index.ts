@@ -35,16 +35,40 @@ app.post("/webhook", middleware(config), async (req: Request, res: Response) => 
       const userMessage: string = event.message.text;
       if (userMessage == "食事を記録する") {
         await setUserMode(userId, RECORD_MODE);
-        messages.push({
-          type: "text",
+        messages.push(
+        {
+          type: "textV2",
           text: "何を食べましたか？",
-        })
+        },
+        {
+          type: "sticker",
+          packageId: "789",
+          stickerId: "10855"
+        }
+      )
       } else if (userMessage == "履歴検索する") {
         await setUserMode(userId, SEARCH_MODE);
 
         messages.push({
-          type: "text",
-          text: "履歴検索したい食べ物の名前を入力してください",
+          type: "textV2",
+          text: "食べ物の名前を入力してください{chicken}{pizza}{ramen}",
+          substitution: {
+            "chicken": {
+              type: "emoji",
+              productId: "5ac1de17040ab15980c9b438",
+              emojiId: "004"
+            },
+            "pizza": {
+              type: "emoji",
+              productId: "5ac1de17040ab15980c9b438",
+              emojiId: "007"
+            },
+            "ramen": {
+              type: "emoji",
+              productId: "5ac1de17040ab15980c9b438",
+              emojiId: "019"
+            }
+          }
         })
       } else {
         // 食事記録フローの2回目入力を想定。テキスト入力での送信は考慮外
@@ -54,17 +78,31 @@ app.post("/webhook", middleware(config), async (req: Request, res: Response) => 
           const now = new Date();
           await createMealRecord(userMessage, now, userId);
 
-          messages.push({
-            type: "text",
-            text: "食事記録を保存しました",
-          })
+          messages.push(
+            {
+              type: "textV2",
+              text: "食事記録を保存しました{rice}",
+              substitution: {
+                "rice": {
+                  type: "emoji",
+                  productId: "5ac1de17040ab15980c9b438",
+                  emojiId: "023"
+                }
+              }
+            },
+            {
+              type: "sticker",
+              packageId: "6136",
+              stickerId: "10551378"
+            }
+          )
           console.log("🔍 食事の記録が完了しました");
         } else if (mode === SEARCH_MODE) {
           console.log(`🔍 userid: ${userId}`);
 
           // 何日前かを計算して応答
           const day = await getDaysSinceLastMeal(userMessage, userId);
-          const replyMessage = day == null ? `${userMessage}は登録されていません` :`あなたが${userMessage}を食べたのは${day}日前です`;
+          const replyMessage = day == null ? `${userMessage}は登録されていません💦` :`あなたが${userMessage}を食べたのは${day}日前です💡`;
 
           messages.push({
             type: "text",
