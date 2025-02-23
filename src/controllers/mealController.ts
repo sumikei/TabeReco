@@ -1,4 +1,6 @@
 import { supabase } from "../models/client";
+import { format as formatDateFns } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 
 
 /**
@@ -22,9 +24,13 @@ export const createMealRecord = async (food_name: string, meal_date: Date) => {
 
       if (existingMeal) {
         console.log("既に登録されています。更新処理を開始します。");
+
+        const jstDate = toZonedTime(meal_date, "Asia/Tokyo");
+        const formated_date = formatDateFns(jstDate, "yyyy-MM-dd HH:mm:ss")
+
         const { error: updateError } = await supabase
           .from("MealRecord")
-          .update({ meal_date })
+          .update({ meal_date: formated_date })
           .eq("food_name", food_name);
 
         if (updateError) {

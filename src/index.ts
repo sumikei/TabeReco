@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, RequestHandler } from "express";
 import dotenv from "dotenv";
 import dotenvExpand from "dotenv-expand";
 import { middleware } from "@line/bot-sdk";
@@ -68,6 +68,29 @@ app.post("/webhook", middleware(config), async (req: Request, res: Response) => 
     res.sendStatus(500);
   }
 });
+
+// const createMealHandler: RequestHandler =  async (req: Request, res: Response): Promise<void> => {
+//   console.log("🔥 /create-meal にリクエストが届いた！");
+//   console.log("📥 受信データ:", req.body); // ← ここで curl のデータを取得
+
+//   try {
+//     const { food_name, meal_date } = req.body;
+
+//     if (!food_name || !meal_date) {
+//       console.log("❌ food_name または meal_date が空です");
+//       res.status(400).json({ error: "food_name と meal_date は必須です。" });
+//       return
+//     }
+
+//     await createMealRecord(food_name, new Date(meal_date));
+//     res.status(200).json({ message: "✅ MealRecord が追加されました" });
+//   } catch (error) {
+//     console.error("❌ API でエラー発生:", error);
+//     res.status(500).json({ error: "内部サーバーエラー" });
+//   }
+// };
+
+// app.post("/create-meal", createMealHandler);
 
 
 export default app;
