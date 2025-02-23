@@ -14,7 +14,7 @@ const myEnv = dotenv.config();
 dotenvExpand.expand(myEnv);
 
 app.get("/", (req, res) => {
-  res.send("Hello, Express with TypeScript!");
+  res.send("Hello, This is TabeReco Service!");
 });
 
 // Webhookエンドポイント
