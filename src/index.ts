@@ -23,7 +23,6 @@ app.post("/webhook", middleware(config), async (req: Request, res: Response) => 
     console.log("🔍 Webhook received:", JSON.stringify(req.body, null, 2));
 
     const event = req.body.events[0];
-    const regex = /食べたい|たべたい/i;
     const messages: any[] = [];
 
     // ユーザーがボットにメッセージを送った場合
