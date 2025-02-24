@@ -6,6 +6,7 @@ import { toZonedTime } from "date-fns-tz";
  * 食べ物が初回入力であれば登録、2回目以降の入力であれば更新する
  * @param foodName 登録する食べ物名
  * @param mealDate 食べた日付
+ * @param userId LINEのユーザーID
  */
 export const createMealRecord = async (foodName: string, mealDate: Date, userId: string) => {
   try {
@@ -54,10 +55,13 @@ export const createMealRecord = async (foodName: string, mealDate: Date, userId:
 }
 
 /**
- * 指定した食べ物をもとに過去に食べた日付を取得し、何日前かを返す
+ * 指定した食べ物をもとに過去に食べた日付を取得し、何日前or何時間前かを返す
+ * 0日前の場合だけ何時間前かを返却し、
+ * 1日以上の場合は何日前かを返却する
  * @param foodName 検索する食べ物名
+ * @param userId LINEのユーザーID
  */
-export const getDaysSinceLastMeal = async (foodName: string, userId: string) => {
+export const getElapsedTimeSinceLastMeal = async (foodName: string, userId: string): Promise<string | null> => {
   const { data: lastMeal, error: fetchError } = await supabase
   .from("MealRecord")
   .select("*")
@@ -73,13 +77,21 @@ export const getDaysSinceLastMeal = async (foodName: string, userId: string) => 
     return null;
   }
 
-  // ✅ JST で `meal_date` を取得
+  const msPerHour = 1000 * 60 * 60;
+  const msPerDay = msPerHour * 24;
+
+  // JST で `meal_date` を取得
   const lastMealDateUTC = new Date(lastMeal.meal_date);
   const lastMealDateJST = toZonedTime(lastMealDateUTC, "Asia/Tokyo");
 
-  // ✅ JST の現在時刻を取得
+  // JST の現在時刻を取得
   const todayJST = toZonedTime(new Date(), "Asia/Tokyo");
-  const pastDays = Math.floor((todayJST.getTime() - lastMealDateJST.getTime()) / (1000 * 60 * 60 * 24));
+  const pastDays = Math.floor((todayJST.getTime() - lastMealDateJST.getTime()) / msPerDay);
 
-  return pastDays;
+  const pastTimes = Math.floor((todayJST.getTime() - lastMealDateJST.getTime()) / msPerHour);
+
+  // 応答メッセージを判別
+  const replyMsg = pastDays === 0 ? `${pastTimes}時間前` : `${pastDays}日前`;
+
+  return replyMsg;
 }
