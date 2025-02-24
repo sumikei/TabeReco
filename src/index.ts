@@ -4,7 +4,7 @@ import dotenvExpand from "dotenv-expand";
 import { middleware } from "@line/bot-sdk";
 import config from "./config";
 import { sendReplyApi } from "./handler/apiHandler";
-import { createMealRecord, getDaysSinceLastMeal } from "./controllers/mealController";
+import { createMealRecord, getElapsedTimeSinceLastMeal } from "./controllers/mealController";
 import { setUserMode, getUserMode } from "./controllers/userStateController"
 import { RECORD_MODE, SEARCH_MODE } from "./const/model";
 
@@ -96,11 +96,11 @@ app.post("/webhook", middleware(config), async (req: Request, res: Response) => 
         } else if (mode === SEARCH_MODE) {
           console.log(`🔍 userid: ${userId}`);
 
-          // 何日前かを計算して応答
-          const day = await getDaysSinceLastMeal(userMessage, userId);
-          const replyMessage = day === null
+          // どれくらい前に食事をしたかを計算して応答
+          const dayOrTime = await getElapsedTimeSinceLastMeal(userMessage, userId);
+          const replyMessage = dayOrTime === null
             ? `${userMessage}は登録されていません💦`
-            : `あなたが${userMessage}を食べたのは${day === 0 ? "今日" : `${day}日前`}です💡`
+            : `あなたが${userMessage}を食べたのは\n${dayOrTime}です💡`
 
           messages.push({
             type: "text",
